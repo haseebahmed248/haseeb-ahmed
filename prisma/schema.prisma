@@ -13,3 +13,92 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+// User model
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  chatMessages  ChatMessage[]
+  subscriptions Subscription[]
+  quota         UserQuota?
+
+  @@map("users")
+}
+
+// Chat messages with question, answer, and tokens
+model ChatMessage {
+  id        String   @id @default(uuid())
+  userId    String
+  question  String   @db.Text
+  answer    String   @db.Text
+  tokens    Int
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("chat_messages")
+}
+
+// User monthly quota tracking
+model UserQuota {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  freeMessagesUsed Int      @default(0)
+  lastResetDate    DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_quotas")
+}
+
+// Subscription bundles
+model Subscription {
+  id             String           @id @default(uuid())
+  userId         String
+  tier           SubscriptionTier
+  maxMessages    Int // -1 for unlimited (Enterprise)
+  usedMessages   Int              @default(0)
+  price          Float
+  billingCycle   BillingCycle
+  autoRenew      Boolean          @default(true)
+  isActive       Boolean          @default(true)
+  startDate      DateTime
+  endDate        DateTime
+  renewalDate    DateTime?
+  lastBillingDate DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+  @@index([endDate])
+  @@map("subscriptions")
+}
+
+// Enums
+enum SubscriptionTier {
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
