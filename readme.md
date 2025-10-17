@@ -26,15 +26,11 @@ Backend API for AI Chat service with subscription management.
 ```bash
    cp .env.example .env
 ```
-4. Start database:
-```bash
-   docker-compose up -d
-```
-5. Run migrations:
+4. Run migrations:
 ```bash
    npx prisma migrate dev --name init
 ```
-6. Start development server:
+5. Start development server:
 ```bash
    npm run dev
 ```
@@ -60,3 +56,4 @@ Backend API for AI Chat service with subscription management.
 
 ### Health Check
 - `GET /health` - Server health status
+
